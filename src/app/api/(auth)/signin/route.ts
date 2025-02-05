@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email });
 
     if (!user) {
       return NextResponse.json(

@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { ApiInterface } from "@/interfaces/ApiInterface";
 import { SigninResponse } from "@/interfaces/authInterface";
 
@@ -23,7 +23,7 @@ const Signin = () => {
   useEffect(() => {
     const message = params?.get("message");
     if (message) {
-      toast.error(message);
+      toast.info(message);
     }
   }, [params]);
 
@@ -42,8 +42,8 @@ const Signin = () => {
       toast.success(response.data.message);
       router.push("/");
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message);
       } else {
         toast.error("Error while doing signin");
       }

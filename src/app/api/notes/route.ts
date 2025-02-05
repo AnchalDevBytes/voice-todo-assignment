@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { Note } from "@/models/note.model";
 import { cookies } from "next/headers";
@@ -59,10 +59,15 @@ export async function POST(req: Request) {
     );
   }
 }
+export async function GET(req: NextRequest) {
+  const params = req.nextUrl.searchParams;
+  const isFavouriteFilter = params.get("isFavourite");
+  const sortByFilter = params.get("sortBy"); // "OLDEST" or "NEWEST"
+  const searchFilter = params.get("search");
 
-export async function GET() {
   try {
     await dbConnect();
+
     const token = cookies().get("token")?.value as string;
     if (!token) {
       return NextResponse.json(
@@ -71,7 +76,6 @@ export async function GET() {
       );
     }
     const decryptedData = verifyToken(token);
-
     if (!decryptedData) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -79,9 +83,27 @@ export async function GET() {
       );
     }
 
-    const notes = await Note.find({ userId: decryptedData?.id }).sort({
-      createdAt: -1,
-    });
+    const query: any = { userId: decryptedData.id };
+    if (isFavouriteFilter === "true") {
+      query.isFavorite = true;
+    }
+
+    if (searchFilter) {
+      query.$or = [
+        { title: { $regex: searchFilter, $options: "i" } },
+        { content: { $regex: searchFilter, $options: "i" } },
+      ];
+    }
+
+    let notesQuery = Note.find(query);
+
+    if (sortByFilter === "NEWEST") {
+      notesQuery = notesQuery.sort({ createdAt: -1 });
+    } else if (sortByFilter === "OLDEST") {
+      notesQuery = notesQuery.sort({ createdAt: 1 });
+    }
+
+    const notes = await notesQuery.exec();
 
     return NextResponse.json({ success: true, data: notes }, { status: 200 });
   } catch (error) {

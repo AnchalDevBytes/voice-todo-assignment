@@ -4,14 +4,49 @@ import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import axios, { AxiosResponse } from "axios";
+import { toast } from "react-toastify";
+import { ApiInterface } from "@/interfaces/ApiInterface";
+import { Dispatch, SetStateAction, useState } from "react";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  setIsFavourite: Dispatch<SetStateAction<boolean | undefined>>;
+  isFavourite: boolean | undefined;
 }
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({
+  isOpen,
+  onClose,
+  setIsFavourite,
+  isFavourite,
+}: SidebarProps) => {
   const pathname = usePathname();
+  const [isLogingOut, setIsLogingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLogingOut(true);
+      const response: AxiosResponse<ApiInterface<any>> = await axios.post(
+        "/api/signout"
+      );
+      if (!response || !response.data.success) {
+        toast.error("Error loging out user!");
+        return;
+      }
+      toast.success("User logged out successfully!");
+      window.location.href = "/";
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error loging out user!");
+      }
+    } finally {
+      setIsLogingOut(false);
+    }
+  };
 
   return (
     <aside
@@ -39,24 +74,37 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
       <div className="p-6 flex flex-col gap-10">
         <nav className="flex gap-5 flex-col">
-          <Link href="/">
-            <Button
-              variant={pathname === "/" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
-            >
-              <Home className="h-4 w-4" />
-              Home
-            </Button>
-          </Link>
-          <Link href="/favorites">
-            <Button
-              variant={pathname === "/favorites" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
-            >
-              <Star className="h-4 w-4" />
-              Favorites
-            </Button>
-          </Link>
+          <Button
+            onClick={() => setIsFavourite(undefined)}
+            variant={!isFavourite ? "secondary" : "ghost"}
+            className="w-full justify-start gap-2"
+          >
+            <Home className="h-4 w-4" />
+            Home
+          </Button>
+          <Button
+            onClick={() => setIsFavourite(true)}
+            variant={isFavourite ? "secondary" : "ghost"}
+            className="w-full justify-start gap-2"
+          >
+            <Star className="h-4 w-4" />
+            Favorites
+          </Button>
+          <hr />
+          <Button
+            onClick={handleLogout}
+            variant={"destructive"}
+            className="mt-2"
+            disabled={isLogingOut}
+          >
+            {isLogingOut ? (
+              "Logging out..."
+            ) : (
+              <span className="flex items-center gap-1">
+                <span>Logout</span> <DoorClosed className="h-4 w-4" />
+              </span>
+            )}
+          </Button>
         </nav>
       </div>
     </aside>

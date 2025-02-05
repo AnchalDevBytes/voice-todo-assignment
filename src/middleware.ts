@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!token) {
       const redirectUrl = new URL("/auth/signin", request.url);
-      redirectUrl.searchParams.set("message", "Please login to continue");
+      redirectUrl.searchParams.set("message", "Login to Continue");
       return NextResponse.redirect(redirectUrl);
     }
 

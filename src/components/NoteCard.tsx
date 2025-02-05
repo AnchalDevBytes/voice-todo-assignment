@@ -21,8 +21,6 @@ export function NoteCard({ note, setNotes }: NoteCardProps) {
   const [isFavorite, setIsFavorite] = useState(note.isFavorite);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  console.log(isFavorite, "------", !note.isFavorite);
-
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
@@ -69,13 +67,23 @@ export function NoteCard({ note, setNotes }: NoteCardProps) {
   };
 
   return (
-    <Card className="p-4 cursor-pointer hover:shadow-lg transition-shadow">
+    <Card className="p-4">
       <div className="flex justify-between items-start mb-2">
         <div>
-          <p className="text-sm text-muted-foreground mb-1">
-            {formatDate(note.createdAt)}
-          </p>
-          <h3 className="font-semibold">{note.title}</h3>
+          <p className="text-xs text-slate-600">{formatDate(note.createdAt)}</p>
+          <h3 className="font-semibold text-xl">{note.title}</h3>
+        </div>
+        <div className="flex items-center gap-2 mr-auto ml-4">
+          {note?.images?.map((img) => {
+            return (
+              <img
+                key={img}
+                className="h-10 w-10 rounded-lg"
+                src={img}
+                alt={img}
+              />
+            );
+          })}
         </div>
         <div className="flex gap-2">
           <Button
@@ -105,16 +113,9 @@ export function NoteCard({ note, setNotes }: NoteCardProps) {
           </Button>
         </div>
       </div>
-      <p className="text-sm text-muted-foreground line-clamp-3">
+      <p className="text-sm text-slate-700 line-clamp-3 whitespace-nowrap pt-6 mt-6 border-t border-t-gray-300">
         {note.content}
       </p>
-      {note.images && note?.images?.length > 0 && (
-        <div className="mt-4">
-          <span className="text-sm text-muted-foreground">
-            {note?.images?.length} image{note?.images?.length > 1 ? "s" : ""}
-          </span>
-        </div>
-      )}
     </Card>
   );
 }

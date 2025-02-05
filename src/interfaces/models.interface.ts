@@ -1,4 +1,4 @@
-import { Document, Types } from 'mongoose';
+import { Document, Types } from "mongoose";
 
 export interface IUser {
   name: string;
@@ -17,11 +17,5 @@ export interface INote {
   createdAt: Date;
   updatedAt: Date;
   userId: Types.ObjectId | IUser;
-  images: IImage[];
-}
-
-export interface IImage {
-  url: string;
-  noteId: Types.ObjectId | INote;
-  createdAt: Date;
+  images: string[];
 }

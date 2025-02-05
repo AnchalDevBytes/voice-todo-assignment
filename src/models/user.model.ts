@@ -16,12 +16,7 @@ const userSchema = new Schema<IUser>({
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-});
-
-userSchema.virtual("notes", {
-  ref: "Note",
-  localField: "_id",
-  foreignField: "userId",
+  notes: [{ type: Schema.Types.ObjectId, ref: "Note" }],
 });
 
 export const User = models.User || model<IUser>("User", userSchema);

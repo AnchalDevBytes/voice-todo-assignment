@@ -28,7 +28,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         >
           <CircleX className="h-4 w-4" />
         </button>
-        
+
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
             <span className="text-white font-semibold">AI</span>

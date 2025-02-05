@@ -3,7 +3,6 @@ import dbConnect from "@/lib/dbConnect";
 import { Note } from "@/models/note.model";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
-import { uploadImage } from "@/utils/cloudinary";
 
 export async function PUT(
   req: Request,
@@ -30,38 +29,38 @@ export async function PUT(
     }
 
     const { id } = params;
-    const formData = await req.formData();
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const image = formData.get("image") as File | null;
+    const { title, content, images, isFavourite } = await req.json();
 
-    if (!title && !content && !image) {
+    if (!title && !content && !images && !isFavourite) {
       return NextResponse.json(
         { success: false, message: "At least one field is required to update" },
         { status: 400 }
       );
     }
 
-    const updateData: { title?: string; content?: string; imgUrl?: string } =
-      {};
-
+    const dataToUpdate: {
+      title?: string;
+      content?: string;
+      images?: string[];
+      isFavorite?: boolean;
+    } = {};
     if (title) {
-      updateData.title = title;
+      dataToUpdate.title = title;
     }
-
     if (content) {
-      updateData.content = content;
+      dataToUpdate.content = content;
+    }
+    if (images && images.length > 0) {
+      dataToUpdate.images = images;
     }
 
-    let imgUrl = null;
-    if (image) {
-      imgUrl = (await uploadImage(image)) as string;
-      updateData.imgUrl = imgUrl;
+    if (isFavourite) {
+      dataToUpdate.isFavorite = isFavourite;
     }
 
     const note = await Note.findOneAndUpdate(
       { _id: id, userId: decryptedData.id },
-      updateData,
+      dataToUpdate,
       { new: true }
     );
 

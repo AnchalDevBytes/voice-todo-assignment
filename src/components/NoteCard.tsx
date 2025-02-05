@@ -1,147 +1,120 @@
 "use client";
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Copy, Trash2, Star, Maximize2, X } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  transcription?: string | null;
-  isFavorite: boolean;
-  createdAt: string;
-  images: Array<{ id: string; url: string; }>;
-}
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Trash2, Edit, Star } from "lucide-react";
+import { Note } from "@/interfaces/NotesInterface";
+import { formatDate } from "@/utils/formatDate";
+import { Dispatch, SetStateAction, useState } from "react";
+import EditNoteDialog from "./EditNoteDialog";
+import { toast } from "react-toastify";
+import axios, { AxiosResponse } from "axios";
+import { ApiInterface } from "@/interfaces/ApiInterface";
+import Spinner from "./Spinner";
 
 interface NoteCardProps {
   note: Note;
-  onDelete: (id: string) => void;
-  onEdit: (id: string, updates: any) => void;
-  onFavorite: (id: string, isFavorite: boolean) => void;
+  setNotes: Dispatch<SetStateAction<Note[]>>;
 }
 
-const NoteCard = ({ 
-    note, 
-    onDelete, 
-    onEdit, 
-    onFavorite 
-}: NoteCardProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+export function NoteCard({ note, setNotes }: NoteCardProps) {
+  const [isFavoriting, setisFavouriting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(note.isFavorite);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(note.content);
+  console.log(isFavorite, "------", !note.isFavorite);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const response = await axios.delete(`/api/notes/${note._id}`);
+      if (!response || !response.data.success) {
+        toast.error(response.data.message);
+        return;
+      }
+      toast.success("Note deleted successfully!");
+      setNotes((prev) => prev.filter((n) => n._id !== note._id));
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error while deleting note");
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true
-    });
+  const handleFavourite = async () => {
+    try {
+      setisFavouriting(true);
+      const response: AxiosResponse<ApiInterface<Note>> = await axios.put(
+        `/api/notes/${note._id}`,
+        {
+          isFavourite: !note.isFavorite,
+        }
+      );
+      if (!response || !response.data.data || !response.data.success) {
+        toast.error(response.data.message);
+        return;
+      }
+      setIsFavorite(!note.isFavorite);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.error("Error while favouriting note");
+    } finally {
+      setisFavouriting(false);
+    }
   };
 
   return (
-    <>
-      <Card
-        className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
-        onClick={() => setIsModalOpen(true)}
-      >
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">
-              {formatDate(note.createdAt)}
-            </p>
-            <h3 className="font-semibold">{note.title}</h3>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={(e) => {
-              e.stopPropagation();
-              handleCopy();
-            }}>
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={(e) => {
-              e.stopPropagation();
-              onDelete(note.id);
-            }}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+    <Card className="p-4 cursor-pointer hover:shadow-lg transition-shadow">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <p className="text-sm text-muted-foreground mb-1">
+            {formatDate(note.createdAt)}
+          </p>
+          <h3 className="font-semibold">{note.title}</h3>
         </div>
-        <p className="text-sm text-muted-foreground line-clamp-3">{note.content}</p>
-        {note.images.length > 0 && (
-          <div className="mt-4">
-            <span className="text-sm text-muted-foreground">{note.images.length} image{note.images.length > 1 ? 's' : ''}</span>
-          </div>
-        )}
-      </Card>
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className={cn(
-          "sm:max-w-[800px]",
-          isFullscreen && "w-screen h-screen max-w-none inset-0 rounded-none"
-        )}>
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center gap-4">
-              <DialogTitle>{note.title}</DialogTitle>
-              <Button variant="ghost" size="icon" onClick={() => onFavorite(note.id, !note.isFavorite)}>
-                <Star className={cn("h-4 w-4", note.isFavorite && "fill-yellow-400")} />
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(!isFullscreen)}>
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-              <DialogClose asChild>
-                <Button variant="ghost" size="icon">
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogClose>
-            </div>
-          </DialogHeader>
-
-          <Tabs defaultValue="notes" className="mt-4">
-            <TabsList>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
-              <TabsTrigger value="transcript">Transcript</TabsTrigger>
-            </TabsList>
-            <TabsContent value="notes" className="mt-4">
-              <div className="prose prose-sm max-w-none">
-                <p>{note.content}</p>
-              </div>
-              {note.images.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {note.images.map((image) => (
-                    <img
-                      key={image.id}
-                      src={image.url}
-                      alt=""
-                      className="rounded-lg object-cover w-full h-48"
-                    />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            <TabsContent value="transcript" className="mt-4">
-              {note.transcription ? (
-                <p>{note.transcription}</p>
-              ) : (
-                <p className="text-muted-foreground">No transcription available</p>
-              )}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-    </>
+        <div className="flex gap-2">
+          <Button
+            disabled={isFavoriting}
+            variant="ghost"
+            size="icon"
+            onClick={handleFavourite}
+          >
+            {isFavoriting ? (
+              <Spinner className="w-4 aspect-square" />
+            ) : (
+              <Star className={`h-4 w-4 ${isFavorite && "text-yellow-500"}`} />
+            )}
+          </Button>
+          <EditNoteDialog note={note} setNotes={setNotes} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Spinner className="w-4 aspect-square border-t-red-700" />
+            ) : (
+              <Trash2 className={`h-4 w-4`} />
+            )}
+          </Button>
+        </div>
+      </div>
+      <p className="text-sm text-muted-foreground line-clamp-3">
+        {note.content}
+      </p>
+      {note.images && note?.images?.length > 0 && (
+        <div className="mt-4">
+          <span className="text-sm text-muted-foreground">
+            {note?.images?.length} image{note?.images?.length > 1 ? "s" : ""}
+          </span>
+        </div>
+      )}
+    </Card>
   );
 }
-
-export default NoteCard;

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { Note } from "@/models/note.model";
-import { uploadImage } from "@/utils/cloudinary";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth";
 
@@ -16,7 +15,6 @@ export async function POST(req: Request) {
       );
     }
     const decryptedData = verifyToken(token);
-
     if (!decryptedData) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -24,10 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const formData = await req.formData();
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const image = formData.get("image") as File | null;
+    const { title, content, images } = await req.json();
 
     if (!title || !content) {
       return NextResponse.json(
@@ -36,17 +31,19 @@ export async function POST(req: Request) {
       );
     }
 
-    let imgUrl = null;
-    if (image) {
-      imgUrl = (await uploadImage(image)) as string;
-    }
-
     const note = await Note.create({
       title,
       content,
-      imgUrl,
-      userId: decryptedData?.id,
+      images,
+      userId: decryptedData.id,
     });
+
+    if (!note) {
+      return NextResponse.json(
+        { success: false, message: "Error creating note" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true, data: note }, { status: 201 });
   } catch (error) {

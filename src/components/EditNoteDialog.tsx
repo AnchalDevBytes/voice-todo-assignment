@@ -127,14 +127,14 @@ const EditNoteDialog = ({
   };
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       setTempNote({
         title: note.title,
         content: note.content,
         images: note.images,
       });
     }
-  }, [open]);
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

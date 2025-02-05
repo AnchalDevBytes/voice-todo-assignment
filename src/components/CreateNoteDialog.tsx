@@ -122,14 +122,14 @@ const CreateNoteDialog = ({
   };
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       setTempNote({
         title: "",
         content: "",
         images: [],
       });
     }
-  }, [open]);
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

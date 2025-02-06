@@ -2,9 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Note } from "@/interfaces/NotesInterface";
-import { Search, SortDesc, Menu, Plus } from "lucide-react";
+import { Search, SortDesc, Menu } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
-import CreateNoteDialog from "./CreateNoteDialog";
+import CreateNoteDialog from "@/components/CreateNoteDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   defaultValue: string;

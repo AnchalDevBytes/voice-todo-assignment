@@ -1,15 +1,15 @@
 "use client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, Star } from "lucide-react";
+import { Trash2, Star } from "lucide-react";
 import { Note } from "@/interfaces/NotesInterface";
 import { formatDate } from "@/utils/formatDate";
 import { Dispatch, SetStateAction, useState } from "react";
-import EditNoteDialog from "./EditNoteDialog";
+import EditNoteDialog from "@/components/EditNoteDialog";
 import { toast } from "react-toastify";
 import axios, { AxiosResponse } from "axios";
 import { ApiInterface } from "@/interfaces/ApiInterface";
-import Spinner from "./Spinner";
+import Spinner from "@/components/Spinner";
 
 interface NoteCardProps {
   note: Note;

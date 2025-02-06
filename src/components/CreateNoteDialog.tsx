@@ -1,7 +1,12 @@
 "use client";
-import { CircleX, Pencil, Plus } from "lucide-react";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { CircleX, Mic, Pencil, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Note, NoteFormData } from "@/interfaces/NotesInterface";
 import {
   ChangeEvent,
@@ -15,9 +20,9 @@ import {
 import axios, { AxiosResponse } from "axios";
 import { ApiInterface } from "@/interfaces/ApiInterface";
 import { toast } from "react-toastify";
-import { Input } from "./ui/input";
+import { Input } from "@/components/ui/input";
 import { uploadImageApiCall } from "@/helpers/uploadImage";
-import Spinner from "./Spinner";
+import Spinner from "@/components/Spinner";
 
 const CreateNoteDialog = ({
   notes,
@@ -35,6 +40,15 @@ const CreateNoteDialog = ({
   const [areImagesUploading, setAreImagesUploading] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const notesRef = useRef(notes);
+  const [isRecording, setIsRecording] = useState(false);
+  const [currentInput, setCurrentInput] = useState<"title" | "content" | null>(
+    null
+  );
+  const currentInputRef = useRef<"title" | "content" | null>(null);
+
+  useEffect(() => {
+    currentInputRef.current = currentInput;
+  }, [currentInput]);
 
   const createNotes = async (e: FormEvent) => {
     e.preventDefault();
@@ -131,6 +145,55 @@ const CreateNoteDialog = ({
     }
   }, [isOpen]);
 
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = "en-US";
+
+      recognition.onresult = (event) => {
+        // console.log("event", event);
+        const transcript =
+          event.results[event.results.length - 1][0].transcript;
+
+        const current = currentInputRef.current;
+
+        if (current === "title") {
+          setTempNote((prev) => ({ ...prev, title: transcript }));
+        } else if (current === "content") {
+          setTempNote((prev) => ({ ...prev, content: transcript }));
+        }
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+        setCurrentInput(null);
+      };
+      recognitionRef.current = recognition;
+    } else {
+      toast.error("Speech recognition not supported!");
+    }
+  }, []);
+
+  const handleMicClick = (inputType: "title" | "content") => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    if (isRecording) {
+      recognition.stop();
+      setIsRecording(false);
+      setCurrentInput(null);
+    } else {
+      setCurrentInput(inputType);
+      recognition.start();
+      setIsRecording(true);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger className="flex items-center gap-2 hover:bg-slate-800 bg-slate-950 transition-all duration-200 text-white px-4 py-2 rounded-lg">
@@ -143,22 +206,58 @@ const CreateNoteDialog = ({
         </DialogTitle>
         <form onSubmit={createNotes} className="w-full flex flex-col items-end">
           <div className="flex flex-col items-center gap-2 w-full">
-            <Input
-              type="text"
-              placeholder="Enter the Title"
-              className="w-full"
-              onChange={(e) =>
-                setTempNote({ ...tempNote, title: e.target.value })
-              }
-            />
-            <textarea
-              placeholder="Content of your note..."
-              className="w-full border-[0.5px] border-gray-800 rounded-md p-2 focus-within:outline-none resize-y"
-              rows={5}
-              onChange={(e) =>
-                setTempNote({ ...tempNote, content: e.target.value })
-              }
-            />
+            <div className="relative flex gap-2 w-full">
+              <Input
+                type="text"
+                placeholder="Enter the Title"
+                className="w-full"
+                value={tempNote.title}
+                onChange={(e) =>
+                  setTempNote({ ...tempNote, title: e.target.value })
+                }
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMicClick("title");
+                }}
+                className={`absolute right-2 ${
+                  isRecording && currentInput === "title"
+                    ? "text-red-400"
+                    : "text-gray-500"
+                }`}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="relative flex gap-2 w-full">
+              <textarea
+                placeholder="Content of your note..."
+                className="w-full border-[0.5px] border-gray-800 rounded-md p-2 focus-within:outline-none resize-y"
+                rows={5}
+                value={tempNote.content}
+                onChange={(e) =>
+                  setTempNote({ ...tempNote, content: e.target.value })
+                }
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMicClick("content");
+                }}
+                className={`absolute right-2 ${
+                  isRecording && currentInput === "content"
+                    ? "text-red-400"
+                    : "text-gray-500"
+                }`}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            </div>
 
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-3 max-w-full">

@@ -1,8 +1,6 @@
 "use client";
-import { Circle, CircleX, DoorClosed, Home, Star } from "lucide-react";
+import { CircleX, DoorClosed, Home, Star } from "lucide-react";
 import { Button } from "./ui/button";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import axios, { AxiosResponse } from "axios";
 import { toast } from "react-toastify";
@@ -22,7 +20,6 @@ const Sidebar = ({
   setIsFavourite,
   isFavourite,
 }: SidebarProps) => {
-  const pathname = usePathname();
   const [isLogingOut, setIsLogingOut] = useState(false);
 
   const handleLogout = async () => {

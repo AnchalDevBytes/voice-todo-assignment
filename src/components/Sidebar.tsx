@@ -63,9 +63,9 @@ const Sidebar = ({
 
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-semibold">AI</span>
+            <span className="text-white font-semibold">N</span>
           </div>
-          <h1 className="text-xl font-semibold">AI Notes</h1>
+          <h1 className="text-xl font-semibold">Notes</h1>
         </div>
       </div>
 

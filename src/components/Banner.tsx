@@ -23,7 +23,7 @@ const Banner = () => {
             <div>
               <h3 className="font-semibold mb-1">Voice Recording</h3>
               <p className="text-muted-foreground">
-                Record your thoughts and let AI transcribe them into text
+                Record your thoughts and let transcribe them into text
               </p>
             </div>
           </div>

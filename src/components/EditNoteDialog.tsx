@@ -1,5 +1,5 @@
 "use client";
-import { CircleX, Edit, Mic, Pencil } from "lucide-react";
+import { CircleX, Edit, Mic, MicOff, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -232,11 +232,15 @@ const EditNoteDialog = ({
                 }}
                 className={`absolute right-2 ${
                   isRecording && currentInput === "title"
-                    ? "text-red-400"
+                    ? "text-red-400 animate-pulse px-2 py-[3px] border border-red-100 bg-red-50 rounded-full"
                     : "text-gray-500"
                 }`}
               >
-                <Mic className="h-4 w-4" />
+                {isRecording ? (
+                  <Mic className="h-4 w-4" />
+                ) : (
+                  <MicOff className="h-4 w-4" />
+                )}
               </Button>
             </div>
             <div className="relative flex gap-2 w-full">
@@ -258,11 +262,15 @@ const EditNoteDialog = ({
                 }}
                 className={`absolute right-2 ${
                   isRecording && currentInput === "content"
-                    ? "text-red-400"
+                    ? "text-red-400 animate-pulse px-2 py-[3px] border border-red-100 bg-red-50 rounded-full"
                     : "text-gray-500"
                 }`}
               >
-                <Mic className="h-4 w-4" />
+                {isRecording ? (
+                  <Mic className="h-4 w-4" />
+                ) : (
+                  <MicOff className="h-4 w-4" />
+                )}
               </Button>
             </div>
 
